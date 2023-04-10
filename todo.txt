@@ -1,0 +1,6 @@
+Game is pretty much entirely working. Things still to do:
+    a. import new character animations
+        i. see if I can use the aseprite files to make the sprites bigger
+        ii. Need to go to aseprite and make all of the sprites 130 x 130 (Done)
+        iii. Export all the PNGs and crop them (ugh)
+    b. Need to put everything in here into a git repo
