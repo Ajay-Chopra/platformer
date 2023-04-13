@@ -56,6 +56,9 @@ class Player(pygame.sprite.Sprite):
         # Attack status
         self.is_attacking = False
         self.attack_time = None
+        self.current_air_attack = None
+        self.can_begin_new_attack = True
+        self.attack_cooldown_time = 400
     
     def import_character_assets(self) -> None:
         """
@@ -94,7 +97,13 @@ class Player(pygame.sprite.Sprite):
 
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animation):
-            self.frame_index = 0
+            if self.is_attacking:
+                self.is_attacking = False
+                self.attack_time = pygame.time.get_ticks()
+                self.get_status()
+                self.frame_index = 0
+            else:
+                self.frame_index = 0
         
         image = animation[int(self.frame_index)]
         if self.facing_right:
@@ -105,8 +114,7 @@ class Player(pygame.sprite.Sprite):
         
         # set rectangle
         if self.on_ground and self.on_right:
-            pass
-            # self.rect = self.image.get_rect(bottomright = self.rect.bottomright)
+            self.rect = self.image.get_rect(bottomright = self.rect.bottomright)
         elif self.on_ground and self.on_left:
             self.rect = self.image.get_rect(bottomleft = self.rect.bottomleft)
         elif self.on_ground:
@@ -148,16 +156,20 @@ class Player(pygame.sprite.Sprite):
         Get the status of the player for animation
         """
         if self.direction.y < 0:
-            self.status = 'jump'
+            if not self.is_attacking:
+                self.status = 'jump'
+            else:
+                self.status = self.current_air_attack
         elif self.direction.y > 1:
-            self.status = 'fall'
+            if not self.is_attacking:
+                self.status = 'fall'
+            else:
+                self.status = self.current_air_attack
         else:
             if self.direction.x != 0:
                 self.status = 'run'
             else:
-                if self.is_attacking:
-                    self.status = 'throw_sword'
-                else:
+                if not self.is_attacking:
                     self.status = 'idle'
     
     def get_input(self) -> None:
@@ -166,7 +178,6 @@ class Player(pygame.sprite.Sprite):
         """
         if not self.is_attacking:
             keys = pygame.key.get_pressed()
-            mouse_presses = pygame.mouse.get_pressed(num_buttons=3)
 
             if keys[pygame.K_RIGHT]:
                 self.direction.x = 1
@@ -177,24 +188,40 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.direction.x = 0
             
-            if keys[pygame.K_SPACE] and self.on_ground:
+            if keys[pygame.K_UP] and self.on_ground:
                 self.jump()
                 self.create_jump_particles(position = self.rect.midbottom)
-            
-            if mouse_presses[0]:
+            # TODO: Refactor this whole section
+            if keys[pygame.K_d]:
                 self.is_attacking = True
                 self.attack_time = pygame.time.get_ticks()
+                self.status = 'attack_1'
+                self.current_air_attack = 'air_attack_1'
+            elif keys[pygame.K_s]:
+                self.is_attacking = True
+                self.attack_time = pygame.time.get_ticks()
+                self.status = 'attack_2'
+                self.current_air_attack = 'air_attack_2'
+            elif keys[pygame.K_a]:
+                self.is_attacking = True
+                self.attack_time = pygame.time.get_ticks()
+                self.status = 'attack_3'
+            elif keys[pygame.K_SPACE]:
+                self.is_attacking = True
+                self.attack_time = pygame.time.get_ticks()
+                self.status = 'throw_sword'
+                    
+                    
     
     def attack_cooldown(self) -> None:
         """
         Wait for attack to cooldown
         """
-        if self.is_attacking:
+        if not self.can_begin_new_attack:
             current_time = pygame.time.get_ticks()
-            if current_time - self.attack_time >= 300:
-                self.is_attacking = False
+            if current_time - self.attack_time >= self.attack_cooldown_time:
+                self.can_begin_new_attack = True
 
-    
     def jump(self) -> None:
         """
         Have the player jump by increasing their
@@ -253,5 +280,5 @@ class Player(pygame.sprite.Sprite):
         self.get_status()
         self.animate()
         self.animate_dust()
-        self.attack_cooldown()
+        # Sself.attack_cooldown()
         self.check_damage_timeout()
