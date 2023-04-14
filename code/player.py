@@ -7,12 +7,15 @@ class Player(pygame.sprite.Sprite):
     """
     Represents player sprite
     """
-    def __init__(self, pos: Tuple[int, int], create_jump_particles: Callable[[Tuple[int, int]], None]):
+    def __init__(
+            self, 
+            pos: Tuple[int, int], 
+            create_jump_particles: Callable[[Tuple[int, int]], None],
+            throw_sword: Callable[[], None]
+        ):
         super().__init__()
-        self.image = pygame.Surface((32, 64))
-        self.image.fill('red')
-        self.rect = self.image.get_rect(topleft = pos)
 
+        # movement and jumping
         self.direction = pygame.math.Vector2(0,0)
         self.speed = 8
         self.gravity = 0.8
@@ -32,7 +35,7 @@ class Player(pygame.sprite.Sprite):
         # animations
         self.frame_index = 0
         self.animation_speed = 0.15
-        self.image = self.animations['idle'][self.frame_index]
+        self.image = self.animations['idle_s'][self.frame_index]
         self.rect = self.image.get_rect(topleft = pos)
 
         # dust animations
@@ -59,6 +62,10 @@ class Player(pygame.sprite.Sprite):
         self.current_air_attack = None
         self.can_begin_new_attack = True
         self.attack_cooldown_time = 400
+
+        # Sword and sword throwing
+        self.has_sword = True
+        self.throw_sword = throw_sword
     
     def import_character_assets(self) -> None:
         """
@@ -68,9 +75,13 @@ class Player(pygame.sprite.Sprite):
         assets_path = '../graphics/character/'
         self.animations = {
             'idle': [],
+            'idle_s': [],
             'run': [],
+            'run_s': [],
             'jump': [],
+            'jump_s': [],
             'fall': [],
+            'fall_s': [],
             'attack_1': [],
             'attack_2': [],
             'attack_3': [],
@@ -98,8 +109,9 @@ class Player(pygame.sprite.Sprite):
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animation):
             if self.is_attacking:
+                if self.status == 'throw_sword':
+                    self.has_sword = False
                 self.is_attacking = False
-                self.attack_time = pygame.time.get_ticks()
                 self.get_status()
                 self.frame_index = 0
             else:
@@ -156,21 +168,34 @@ class Player(pygame.sprite.Sprite):
         Get the status of the player for animation
         """
         if self.direction.y < 0:
-            if not self.is_attacking:
-                self.status = 'jump'
-            else:
+            if self.current_air_attack is not None:
                 self.status = self.current_air_attack
+            else:
+                if self.has_sword:
+                    self.status = 'jump_s'
+                else:
+                    self.status = 'jump'
         elif self.direction.y > 1:
-            if not self.is_attacking:
-                self.status = 'fall'
-            else:
+            if self.current_air_attack is not None:
                 self.status = self.current_air_attack
+            else:
+                if self.has_sword:
+                    self.status = 'fall_s'
+                else:
+                    self.status = 'fall'
         else:
+            self.current_air_attack = None
             if self.direction.x != 0:
-                self.status = 'run'
+                if self.has_sword:
+                    self.status = 'run_s'
+                else:
+                    self.status = 'run'
             else:
                 if not self.is_attacking:
-                    self.status = 'idle'
+                    if self.has_sword:
+                        self.status = 'idle_s'
+                    else:
+                        self.status = 'idle'
     
     def get_input(self) -> None:
         """
@@ -191,28 +216,30 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_UP] and self.on_ground:
                 self.jump()
                 self.create_jump_particles(position = self.rect.midbottom)
-            # TODO: Refactor this whole section
-            if keys[pygame.K_d]:
-                self.is_attacking = True
-                self.attack_time = pygame.time.get_ticks()
-                self.status = 'attack_1'
-                self.current_air_attack = 'air_attack_1'
-            elif keys[pygame.K_s]:
-                self.is_attacking = True
-                self.attack_time = pygame.time.get_ticks()
-                self.status = 'attack_2'
-                self.current_air_attack = 'air_attack_2'
-            elif keys[pygame.K_a]:
-                self.is_attacking = True
-                self.attack_time = pygame.time.get_ticks()
-                self.status = 'attack_3'
-            elif keys[pygame.K_SPACE]:
-                self.is_attacking = True
-                self.attack_time = pygame.time.get_ticks()
-                self.status = 'throw_sword'
-                    
-                    
-    
+
+            if self.has_sword:
+                if keys[pygame.K_d]:
+                    self.is_attacking = True
+                    self.attack_time = pygame.time.get_ticks()
+                    self.status = 'attack_1'
+                    self.current_air_attack = 'air_attack_1'
+                elif keys[pygame.K_s]:
+                    self.is_attacking = True
+                    self.attack_time = pygame.time.get_ticks()
+                    self.status = 'attack_2'
+                    self.current_air_attack = 'air_attack_2'
+                elif keys[pygame.K_a]:
+                    self.is_attacking = True
+                    self.attack_time = pygame.time.get_ticks()
+                    self.status = 'attack_3'
+                    self.current_air_attack = None
+                elif keys[pygame.K_SPACE]:
+                    self.is_attacking = True
+                    self.attack_time = pygame.time.get_ticks()
+                    self.status = 'throw_sword'
+                    self.current_air_attack = 'throw_sword'
+                    self.throw_sword()
+                                
     def attack_cooldown(self) -> None:
         """
         Wait for attack to cooldown

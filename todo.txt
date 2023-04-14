@@ -1,8 +1,9 @@
-Game is pretty much entirely working. Things still to do:
-    a. add character attacks to gameplay
-        - Need default key bindings
-        - Space: Jump
-        - Arrows: Left/Right
-        - ZXC for attacks
-        - Press same keys while in the air for air attacks
-        - L shift for throwing sword
+TODO:
+1. Player animations
+    a. Complete the sword throw animation
+        Sword throwing rules
+            - if player throws sword, they lose the sword
+            - if the sword hits a piece of terrain it will stick into the terrain
+            and the player can retrieve it
+    b. add the hit/death animation
+    c. Fix the air attack bug (figure out some kind of system to keep track of player attacks)

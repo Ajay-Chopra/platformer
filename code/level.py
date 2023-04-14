@@ -3,6 +3,7 @@ import pygame
 from tile import StaticTile, Water, TileCreator
 from player import Player
 from particles import ParticleEffect
+from projectile import Projectile
 from ui import UI
 from title import Title
 import settings as settings
@@ -93,6 +94,9 @@ class Level:
 
         # Get collidable sprites
         self.collidable_sprites = self.terrain_tiles.sprites() + self.crate_tiles.sprites() + self.fg_palm_tiles.sprites()
+
+        # Create the group we'll need for projectile sprites
+        self.projectile_sprites = pygame.sprite.Group()
     
     def player_setup(self, layout: List[str]) -> None:
         """
@@ -103,7 +107,11 @@ class Level:
                 x = j * settings.TILE_SIZE
                 y = i * settings.TILE_SIZE
                 if cell == '0':
-                    sprite = Player(pos=(x, y), create_jump_particles=self.create_jump_particles)
+                    sprite = Player(
+                        pos=(x, y), 
+                        create_jump_particles=self.create_jump_particles,
+                        throw_sword=self.handle_sword_throw
+                    )
                     self.player.add(sprite)
                 elif cell == '1':
                     hat_surface = pygame.image.load("../graphics/character/hat.png")
@@ -229,6 +237,18 @@ class Level:
                 else:
                     self.player.sprite.get_damage()
     
+    def handle_sword_throw(self) -> None:
+        """
+        Display spinning sword after player
+        throws sword
+        """
+        player = self.player.sprite
+        self.projectile_sprites.add(Projectile(
+            pos=player.rect.topleft,
+            path="../graphics/projectiles/sword_spinning"
+        ))
+
+    
     def check_player_off_map(self):
         """
         Check to see if the player has fallen off the map
@@ -297,6 +317,9 @@ class Level:
 
         self.explosion_sprite.update(self.world_shift)
         self.explosion_sprite.draw(self.display_surface)
+
+        self.projectile_sprites.update(self.world_shift)
+        self.projectile_sprites.draw(self.display_surface)
 
         self.terrain_tiles.update(self.world_shift)
         self.terrain_tiles.draw(self.display_surface)
