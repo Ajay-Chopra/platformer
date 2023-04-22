@@ -1,5 +1,6 @@
 import pygame
 from typing import Tuple, Callable
+import settings
 from util import import_folder
 from math import sin
 
@@ -238,7 +239,8 @@ class Player(pygame.sprite.Sprite):
                     self.attack_time = pygame.time.get_ticks()
                     self.status = 'throw_sword'
                     self.current_air_attack = 'throw_sword'
-                    self.throw_sword()
+                    sword_velocity = settings.SWORD_VELOCITY if self.facing_right else (-1 * settings.SWORD_VELOCITY)
+                    self.throw_sword(sword_velocity)
                                 
     def attack_cooldown(self) -> None:
         """

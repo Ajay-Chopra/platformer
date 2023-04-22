@@ -237,7 +237,7 @@ class Level:
                 else:
                     self.player.sprite.get_damage()
     
-    def handle_sword_throw(self) -> None:
+    def handle_sword_throw(self, sword_velocity: int) -> None:
         """
         Display spinning sword after player
         throws sword
@@ -245,10 +245,12 @@ class Level:
         player = self.player.sprite
         self.projectile_sprites.add(Projectile(
             pos=player.rect.topleft,
-            path="../graphics/projectiles/sword_spinning"
+            velocity=sword_velocity,
+            path="../graphics/projectiles/sword_spinning",
+            collidable_sprites=self.terrain_tiles.sprites(),
+            killable_sprites=self.enemy_sprites.sprites()
         ))
 
-    
     def check_player_off_map(self):
         """
         Check to see if the player has fallen off the map

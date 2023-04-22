@@ -1,9 +1,6 @@
 TODO:
 1. Player animations
     a. Complete the sword throw animation
-        Sword throwing rules
-            - if player throws sword, they lose the sword
-            - if the sword hits a piece of terrain it will stick into the terrain
-            and the player can retrieve it
+        - add logic for multidirectional sword throws
+        - make only walls collidable
     b. add the hit/death animation
-    c. Fix the air attack bug (figure out some kind of system to keep track of player attacks)
