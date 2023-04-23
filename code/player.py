@@ -67,6 +67,12 @@ class Player(pygame.sprite.Sprite):
         # Sword and sword throwing
         self.has_sword = True
         self.throw_sword = throw_sword
+
+        # death animation
+        self.is_dead = False
+        self.hit_y_speed = -5
+        self.hit_x_speed = 10
+        self.last_hit_direction = None
     
     def import_character_assets(self) -> None:
         """
@@ -86,6 +92,7 @@ class Player(pygame.sprite.Sprite):
             'attack_1': [],
             'attack_2': [],
             'attack_3': [],
+            'dead_hit': [],
             'air_attack_1': [],
             'air_attack_2': [],
             'throw_sword': []
@@ -109,7 +116,9 @@ class Player(pygame.sprite.Sprite):
 
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animation):
-            if self.is_attacking:
+            if self.is_dead:
+                self.frame_index = len(animation) - 1
+            elif self.is_attacking:
                 if self.status == 'throw_sword':
                     self.has_sword = False
                 self.is_attacking = False
@@ -168,35 +177,38 @@ class Player(pygame.sprite.Sprite):
         """
         Get the status of the player for animation
         """
-        if self.direction.y < 0:
-            if self.current_air_attack is not None:
-                self.status = self.current_air_attack
-            else:
-                if self.has_sword:
-                    self.status = 'jump_s'
+        if not self.is_dead:
+            if self.direction.y < 0:
+                if self.current_air_attack is not None:
+                    self.status = self.current_air_attack
                 else:
-                    self.status = 'jump'
-        elif self.direction.y > 1:
-            if self.current_air_attack is not None:
-                self.status = self.current_air_attack
-            else:
-                if self.has_sword:
-                    self.status = 'fall_s'
-                else:
-                    self.status = 'fall'
-        else:
-            self.current_air_attack = None
-            if self.direction.x != 0:
-                if self.has_sword:
-                    self.status = 'run_s'
-                else:
-                    self.status = 'run'
-            else:
-                if not self.is_attacking:
                     if self.has_sword:
-                        self.status = 'idle_s'
+                        self.status = 'jump_s'
                     else:
-                        self.status = 'idle'
+                        self.status = 'jump'
+            elif self.direction.y > 1:
+                if self.current_air_attack is not None:
+                    self.status = self.current_air_attack
+                else:
+                    if self.has_sword:
+                        self.status = 'fall_s'
+                    else:
+                        self.status = 'fall'
+            else:
+                self.current_air_attack = None
+                if self.direction.x != 0:
+                    if self.has_sword:
+                        self.status = 'run_s'
+                    else:
+                        self.status = 'run'
+                else:
+                    if not self.is_attacking:
+                        if self.has_sword:
+                            self.status = 'idle_s'
+                        else:
+                            self.status = 'idle'
+        else:
+            self.status = 'dead_hit'
     
     def get_input(self) -> None:
         """
@@ -258,6 +270,20 @@ class Player(pygame.sprite.Sprite):
         """
         self.direction.y = self.jump_speed
     
+    def run_death_animation(self) -> None:
+        """
+        If the player receives a death blow, update the status
+        and alter their x and y position
+        """
+        if not self.is_dead:
+            self.is_dead = True
+            self.frame_index = 0
+            self.direction.y = self.hit_y_speed
+            if self.last_hit_direction == "right":
+                self.direction.x = -1 * self.hit_x_speed
+            else:
+                self.direction.x = self.hit_x_speed
+    
     def apply_gravity(self) -> None:
         """
         Apply gravitational force so the player
@@ -274,7 +300,7 @@ class Player(pygame.sprite.Sprite):
         sin_value = sin(pygame.time.get_ticks())
         return 255 if sin_value >= 0 else 0
 
-    def get_damage(self) -> None:
+    def get_damage(self, direction: str) -> None:
         """
         Inflict damage on the player
         """
@@ -282,6 +308,7 @@ class Player(pygame.sprite.Sprite):
             self.health -= 25
             self.can_be_damaged = False
             self.damaged_time = pygame.time.get_ticks()
+            self.last_hit_direction = direction
     
     def check_damage_timeout(self) -> None:
         """
@@ -309,5 +336,4 @@ class Player(pygame.sprite.Sprite):
         self.get_status()
         self.animate()
         self.animate_dust()
-        # Sself.attack_cooldown()
         self.check_damage_timeout()

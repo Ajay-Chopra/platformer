@@ -1,6 +1,2 @@
 TODO:
 1. Player animations
-    a. Complete the sword throw animation
-        - add logic for multidirectional sword throws
-        - make only walls collidable
-    b. add the hit/death animation
