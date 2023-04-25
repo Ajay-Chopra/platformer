@@ -235,10 +235,13 @@ class Level:
                     ))
                     enemy_sprite.kill()
                 else:
-                    if enemy_sprite.rect.left <= player.rect.right:
-                        self.player.sprite.get_damage(direction="right")
-                    elif enemy_sprite.rect.right >= player.rect.left:
-                        self.player.sprite.get_damage(direction="left")
+                    if self.player.sprite.is_attacking:
+                        enemy_sprite.kill()
+                    else:
+                        if enemy_sprite.rect.left <= player.rect.right:
+                            self.player.sprite.get_damage(direction="right")
+                        elif enemy_sprite.rect.right >= player.rect.left:
+                            self.player.sprite.get_damage(direction="left")
     
     def handle_sword_throw(self, sword_velocity: int) -> None:
         """
@@ -293,8 +296,6 @@ class Level:
         """
         if self.player.sprite.health <= 0:
             self.player.sprite.run_death_animation()
-            # self.player.sprite.take_hit(direction="left")
-            # self.run_overworld_callback(self.level_number)
     
     def check_player_reached_goal(self) -> None:
         """
