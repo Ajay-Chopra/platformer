@@ -1,6 +1,7 @@
 from typing import List, Tuple
 import pygame
-from tile import StaticTile, Water, TileCreator
+from tile import StaticTile, Water
+from tile_creator import TileCreator
 from player import Player
 from particles import ParticleEffect
 from projectile import Projectile
@@ -28,6 +29,17 @@ class Level:
         # Setup horizontal scrolling
         self.world_shift = 0
         self.current_x = 0
+
+        # set up sprite groups
+        self.all_sprites = pygame.sprite.Group() # holds all of the sprites
+        self.coin_sprites = pygame.sprite.Group() # 
+        self.damagne_sprites = pygame.sprite.Group()
+
+
+
+
+
+
         
         # player setup and stats
         if self.level_number != "title":
