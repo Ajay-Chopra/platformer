@@ -1,3 +1,4 @@
 TODO:
-1. import all enemy animations
-    - need to change the organization of everything so my code isn't complete spaghettinni
+1. add the rest of the shooter traps
+    - cannon
+    - totem pole thing

@@ -2,7 +2,7 @@ import pygame
 import math
 from typing import Tuple
 import settings as settings
-from tile import AnimatedTile
+from sprite import AnimatedTile
 
 
 class Node(AnimatedTile):

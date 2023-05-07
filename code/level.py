@@ -1,10 +1,8 @@
 from typing import List, Tuple
 import pygame
-from sprite import StaticTile, Palm, Crate, Coin, Enemy, ShooterTrap, Water
-from tile_creator import TileCreator
+from sprite import StaticTile, Palm, Crate, Coin, ShooterTrap, Water
 from player import Player
 from particles import ParticleEffect
-from projectile import Projectile
 from ui import UI
 from title import Title
 import settings as settings
