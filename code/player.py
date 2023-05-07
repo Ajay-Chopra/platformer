@@ -1,5 +1,5 @@
 import pygame
-from typing import Tuple, Callable
+from typing import Tuple, Callable, List
 import settings
 from util import import_folder
 from math import sin
@@ -10,7 +10,7 @@ class Player(pygame.sprite.Sprite):
     """
     def __init__(
             self, 
-            pos: Tuple[int, int], 
+            pos: Tuple[int, int],
             create_jump_particles: Callable[[Tuple[int, int]], None],
             throw_sword: Callable[[], None]
         ):
