@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import pygame
-from sprite import StaticTile, Palm, Crate, Coin, ShooterTrap, Water
+from sprite import StaticTile, Palm, Crate, Coin, Shell, Cannon, Water
 from player import Player
 from particles import ParticleEffect
 from ui import UI
@@ -159,11 +159,10 @@ class Level:
                             #     min_speed=5,
                             #     max_speed=10
                             # )
-                            ShooterTrap(
+                            Cannon(
                                 pos=(x, y),
                                 size=settings.TILE_SIZE,
-                                groups=[self.all_sprites, self.damage_sprites],
-                                path="../graphics/enemy/shell"
+                                groups=[self.all_sprites, self.damage_sprites]
                             )
                         elif layer_name == "Player":
                             if col == "0":

@@ -196,6 +196,15 @@ class ShooterTrap(Generic):
         path: str
     ):
         super().__init__(pos, size, groups)
+
+        # These will be overwritten by the child class
+        self.shoot_frame = 2
+        self.projectile_surface = pygame.image.load("../graphics/projectiles/pearl/pearl.png")
+        self.projectile_speed = 20
+        self.attack_cooldown_min_time = 4000
+        self.attack_cooldown_max_time = 6000
+        self.projectile_offset = pygame.math.Vector2(0, 0)
+
         self.animation_frames = {
             'left_idle': [],
             'right_idle': [],
@@ -213,7 +222,7 @@ class ShooterTrap(Generic):
 
         # shooting
         self.has_shot = False
-        self.attack_cooldown = Timer(4000)
+        self.attack_cooldown = Timer(randint(self.attack_cooldown_min_time, self.attack_cooldown_max_time))
     
     def get_assets(self, path: str):
         """
@@ -236,20 +245,20 @@ class ShooterTrap(Generic):
                 self.has_shot = False
         self.image = current_animation[int(self.frame_index)]
 
-        if int(self.frame_index) == 2 and 'attack' in self.status and not self.has_shot:
+        if int(self.frame_index) == self.shoot_frame and 'attack' in self.status and not self.has_shot:
             if 'left' in self.status:
                 projectile_direction = pygame.math.Vector2(-1, 0)
-                offset = (projectile_direction * 50) + pygame.math.Vector2(0, 0)
+                offset = (projectile_direction * 50) + self.projectile_offset
             else:
                 projectile_direction = pygame.math.Vector2(1, 0)
-                offset = (projectile_direction * 20) + pygame.math.Vector2(0, 0)
+                offset = (projectile_direction * 20) + self.projectile_offset
             Projectile(
                 pos=self.rect.center + offset,
                 size=settings.TILE_SIZE,
                 groups=self.groups(),
                 direction=projectile_direction,
-                speed=20,
-                surface=pygame.image.load("../graphics/projectiles/pearl/pearl.png")
+                speed=self.projectile_speed,
+                surface=self.projectile_surface
             )
             self.has_shot = True
 
@@ -267,6 +276,44 @@ class ShooterTrap(Generic):
         self.get_status()
         self.animate()
         self.attack_cooldown.update()
+
+
+class Shell(ShooterTrap):
+    """
+    The shell shooter trap that shoots a pearl
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group]
+    ):
+        super().__int__(pos, size, groups, "../graphics/enemy/shell")
+        self.shoot_frame = 2
+        self.projectile_surface = pygame.image.load("../graphics/projectiles/pearl/pearl.png")
+        self.projectile_speed = 20
+        self.attack_cooldown_min_time = 4000
+        self.attack_cooldown_max_time = 6000
+        self.projectile_offset = pygame.math.Vector2(0, 0)
+       
+
+class Cannon(ShooterTrap):
+    """
+    The cannon shooter trap that shoots a cannnon ball
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group]
+    ):
+        super().__init__(pos, size, groups, path="../graphics/enemy/cannon")
+        self.shoot_frame = 4
+        self.projectile_surface = pygame.image.load("../graphics/projectiles/cannon/ball.png")
+        self.projectile_speed = 20
+        self.attack_cooldown_time = 4000
+        self.projectile_offset = pygame.math.Vector2(0, -90)
+        
 
 
 class Projectile(Generic):
