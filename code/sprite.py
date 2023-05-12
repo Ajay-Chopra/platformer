@@ -114,15 +114,15 @@ class Palm(AnimatedTile):
         self.rect.topleft = (x, offset_y)
 
 
-class Coin(AnimatedTile):
+class Collectable(AnimatedTile):
     """
-    Used for coins that player can collect
-    (may extend to other kinds of gems as well)
+    Represents any item that the player can collect
+    during gameplay in order to enhance their abilities
     """
     def __init__(
-        self, 
-        pos: Tuple[int, int], 
-        size: int, 
+        self,
+        pos: Tuple[int, int],
+        size: int,
         groups: List[pygame.sprite.Group],
         path: str
     ):
@@ -131,10 +131,194 @@ class Coin(AnimatedTile):
         center_x = x + int(size / 2)
         center_y = y + int(size / 2)
         self.rect = self.image.get_rect(center = (center_x,center_y))
-        if "gold" in path:
-            self.type = "gold"
-        else:
-            self.type = "silver"
+        self.effect_path = ""
+
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        """
+        Perform modification on the player
+        """
+        pass
+
+class Coin(Collectable):
+    """
+    Coins add to the player's score
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+        self.effect_path = "../graphics/collectables/coins/effect"
+
+class SilverCoin(Coin):
+    """
+    Silver are worth less than gold coins
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.update_coins(coin_type="silver")
+
+class GoldCoin(Coin):
+    """
+    Gold coins count towards player's score but to a larger
+    degree than silver coins
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.update_coins(coin_type="gold")
+
+
+class Diamond(Collectable):
+    """
+    Diamonds increase the timeout of the potion of the 
+    corresponding color
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+        self.effect_path = "../graphics/collectables/diamonds/effect"
+
+
+class RedDiamond(Diamond):
+    """
+    Health increases by a larger amount
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+
+
+class BlueDiamond(Diamond):
+    """
+    Jump increase lasts longer
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+
+
+class GreenDiamond(Diamond):
+    """
+    Jump increase lasts longer
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+    
+
+class Potion(Collectable):
+    """
+    Potions enhance player abilities
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+        self.effect_path = "../graphics/collectables/potions/effect"
+
+class RedPotion(Potion):
+    """
+    The red potion replenishes player health
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+
+
+class BluePotion(Potion):
+    """
+    The blue potion increases the height of the 
+    player's jump
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+
+
+class GreenPotion(Potion):
+    """
+    The green potion pauses all shooter traps
+    for a given amount of time
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+
+
+class Skull(Collectable):
+    """
+    The skull adds an extra life for the player
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
+        self.effect_path = "../graphics/collectables/skull/effect"
+        
+    
+    
 
 
 class Enemy(AnimatedTile):

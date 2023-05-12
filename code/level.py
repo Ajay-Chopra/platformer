@@ -1,6 +1,19 @@
 from typing import List, Tuple
 import pygame
-from sprite import StaticTile, Palm, Crate, Coin, Shell, Cannon, Water
+from sprite import (
+    StaticTile, 
+    Palm, 
+    Crate, 
+    Shell, 
+    Cannon, 
+    Water, 
+    SilverCoin, 
+    GoldCoin, 
+    RedDiamond,
+    BlueDiamond,
+    GreenDiamond
+
+)
 from player import Player
 from particles import ParticleEffect
 from ui import UI
@@ -38,6 +51,7 @@ class Level:
         self.dust_sprite = pygame.sprite.GroupSingle() # the dust sprite created by jumping and landing
         self.goal = pygame.sprite.GroupSingle() # the goal the player must reach to beat level
         self.explosion_sprite = pygame.sprite.GroupSingle() # explosion that plays when player kills enemy
+        self.collect_effect_sprites = pygame.sprite.Group() # particle effect that plays when player collects an item
 
         # get csv layouts
         self.csv_layouts = {
@@ -132,15 +146,26 @@ class Level:
                             )
                         elif layer_name == "Coins":
                             if col == "0":
-                                path = "../graphics/coins/gold"
+                                GoldCoin(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path="../graphics/coins/gold"
+                                )
                             elif col == "1":
-                                path = "../graphics/coins/silver"
-                            Coin(
-                                pos=(x, y),
-                                size=settings.TILE_SIZE,
-                                groups=[self.all_sprites, self.collectable_sprites],
-                                path=path
-                            )
+                                # SilverCoin(
+                                #     pos=(x, y),
+                                #     size=settings.TILE_SIZE,
+                                #     groups=[self.all_sprites, self.collectable_sprites],
+                                #     path="../graphics/coins/silver"
+                                # )
+                                RedDiamond(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["diamonds"]["red"]["path"]
+                                )
+
                         elif layer_name == "Constraints":
                             StaticTile(
                                 pos=(x, y),
@@ -260,14 +285,23 @@ class Level:
         if player.on_ceiling and player.direction.y > 0.1:
             player.on_ceiling = False
     
-    def coin_collision(self) -> None:
+    def item_collision(self) -> None:
         """
         Handle player's collisions with coin sprites
         """
         player = self.player.sprite
-        collected_coins = pygame.sprite.spritecollide(player, self.collectable_sprites, dokill=True)
-        for coin in collected_coins:
-            self.player.sprite.update_coins(coin.type)
+        collected_items = pygame.sprite.spritecollide(player, self.collectable_sprites, dokill=True)
+        for item in collected_items:
+            item.perform_player_modification(self.player.sprite)
+            effect_path = item.effect_path
+            print(effect_path)
+            self.collect_effect_sprites.add(
+                ParticleEffect(position=item.rect.center, path=effect_path)
+            )
+
+        # for coin in collected_coins:
+        #     coin.perform_player_modification(self.player.sprite)
+        #     # self.player.sprite.update_coins(coin.type)
     
     def player_enemy_collision(self) -> None:
         """
@@ -284,7 +318,7 @@ class Level:
                     player.direction.y = -15
                     self.explosion_sprite.add(ParticleEffect(
                         position=enemy_sprite.rect.center,
-                        type="explosion"
+                        path="../graphics/enemy/explosion"
                     ))
                     enemy_sprite.kill()
                 else:
@@ -329,7 +363,7 @@ class Level:
             position -= pygame.math.Vector2(10,5)
         else:
             position += pygame.math.Vector2(10, -5)
-        self.dust_sprite.add(ParticleEffect(position=position, type="jump"))
+        self.dust_sprite.add(ParticleEffect(position=position, path="../graphics/character/dust_particles/jump"))
     
     def create_landing_particles(self) -> None:
         """
@@ -340,7 +374,7 @@ class Level:
                 offset = pygame.math.Vector2(10, 15)
             else:
                 offset = pygame.math.Vector2(-10, 15)
-            landing_particle = ParticleEffect(self.player.sprite.rect.midbottom - offset, "land")
+            landing_particle = ParticleEffect(self.player.sprite.rect.midbottom - offset, "../graphics/character/dust_particles/land")
             self.dust_sprite.add(landing_particle)
     
     def check_player_death(self) -> None:
@@ -378,7 +412,7 @@ class Level:
         self.horizontal_movement_collision()
         self.get_player_on_ground()
         self.vertical_movement_collision()
-        self.coin_collision()
+        self.item_collision()
         self.player_enemy_collision()
 
     def run(self) -> None:
@@ -393,6 +427,8 @@ class Level:
         self.dust_sprite.draw(self.display_surface)
         self.explosion_sprite.update(self.world_shift)
         self.explosion_sprite.draw(self.display_surface)
+        self.collect_effect_sprites.update(self.world_shift)
+        self.collect_effect_sprites.draw(self.display_surface)
         self.water.draw(self.display_surface, self.world_shift)
         self.scroll_x()
         self.check_player_status()

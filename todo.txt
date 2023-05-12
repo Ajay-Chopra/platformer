@@ -1,4 +1,31 @@
 TODO:
-1. add the rest of the shooter traps
-    - cannon
-    - totem pole thing
+1. Collectable item usage rules
+    a. Diamonds: Enhances the ability of the corresponding potion color
+        - Red diamond: health increases by a larger amount
+        - Blue diamond: Jump height increase lasts longer
+        - Green potion: shooter traps stay dormant for longer
+    b. Coins: These can basically be your score (shows how well you did in a given level)
+        i. Gold Coins
+            - High value (placed in the most difficult to reach areas)
+        ii. Silver Coins
+            - Lesser value (scattered throughout the level)
+    c. Potions: Enhance player abilities
+        - Red potion: increases health
+        - Blue potion: increases jump height for a certain amount of time
+        - Green potion: Stops shooter traps from firing for a certain amount of time
+    d. Skull: Gives player an extra life
+        - Every time you die you lose a skull
+
+2. Enemy interaction rules
+    a. Every enemy can take a certain amount of damage and gives a certain amount of damage
+    b. Player can only kill an enemy by jumping on them
+    c. If enemy collides with player in any other way, the player takes damage
+
+3. Shooter trap rules
+    a. If a player is hit by a projectile from a shooter trap, the player takes damage
+    b. Player can destroy projectiles midflight by jumping on them
+
+List
+    - export all collectable images
+    - export all effects
+    

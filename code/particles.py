@@ -3,15 +3,11 @@ from typing import Tuple
 from util import import_folder
 
 class ParticleEffect(pygame.sprite.Sprite):
-    def __init__(self, position: Tuple[int, int], type: str):
+    def __init__(self, position: Tuple[int, int], path: str):
         super().__init__()
         self.frame_index = 0
         self.animation_speed = 0.15
-        if type == "explosion":
-            assets_folder = "../graphics/enemy/explosion"
-        else:
-            assets_folder = f"../graphics/character/dust_particles/{type}"
-        self.frames = import_folder(assets_folder)
+        self.frames = import_folder(path)
         self.image = self.frames[self.frame_index]
         self.rect = self.image.get_rect(center = position)
     

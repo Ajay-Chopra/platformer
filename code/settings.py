@@ -1,3 +1,5 @@
+import pygame
+
 SCREEN_WIDTH = 1200
 TILE_SIZE = 64
 VERTICAL_TILE_NUMBER = 11
@@ -61,3 +63,129 @@ MENU_OPTION_HEIGHT_DELTA = 50
 
 # Projectile settings
 SWORD_VELOCITY = 10
+
+# Enemy data
+ENEMY_DATA = {
+    "crabs": {
+        "gameplay": {
+            "damage_given": 20,
+            "damage_taken": 20
+        },
+        "sprite_data": {
+            "path": "../graphics/enemy/crabs",
+            "animation_speed": 0.15,
+            "min_speed": 3,
+            "max_speed": 5
+        }
+    },
+    "star": {
+        "gameplay": {
+            "damage_given": 20,
+            "damage_taken": 20
+        },
+        "sprite_data": {
+            "path": "../graphics/enemy/star",
+            "animation_speed": 0.15,
+            "min_speed": 3,
+            "max_speed": 5
+        }
+    },
+    "tooth": {
+        "gameplay": {
+            "damage_given": 20,
+            "damage_taken": 20
+        },
+        "sprite_data": {
+            "path": "../graphics/enemy/tooth",
+            "animation_speed": 0.15,
+            "min_speed": 3,
+            "max_speed": 5
+        }
+    }
+}
+
+# shooter trap data
+SHOOTER_TRAP_DATA = {
+    "cannon": {
+        "gameplay": {
+            "damage_given": 50
+        },
+        "sprite_data": {
+            "shoot_frame": 4,
+            "path": "../graphics/enemy/cannon",
+            "projectile_path": "../graphics/projectiles/cannon/ball.png",
+            "projectile_speed": 20,
+            "attack_cooldown_min_time": 4000,
+            "attack_cooldown_max_time": 6000,
+            "projectile_offset": pygame.math.Vector2(0, -90)
+        }
+    },
+    "shell": {
+        "gameplay": {
+            "damage_given": 50
+        },
+        "sprite_data": {
+            "shoot_frame": 2,
+            "path": "../graphics/enemy/cannon",
+            "projectile_path": "../graphics/projectiles/pearl/pearl.png",
+            "projectile_speed": 20,
+            "attack_cooldown_min_time": 4000,
+            "attack_cooldown_max_time": 6000,
+            "projectile_offset": pygame.math.Vector2(0, -90)
+        }
+    }
+}
+
+# collectable data
+COLLECTABLE_ITEM_DATA = {
+    "potions": {
+        "red": {
+            "path": "",
+            "base_increase_amount": 20 
+        },
+        "green": {
+            "path": "",
+            "increase_amount": 20,
+            "base_time_amount": 15000
+        },
+        "blue": {
+            "path": "",
+            "increase_amount": 20,
+            "base_time_amount": 150000
+        }
+    },
+    "diamonds": {
+        "red": {
+            "path": "../graphics/collectables/diamonds/red",
+            "multiplier": 2
+        },
+        "green": {
+            "path": "",
+            "multiplier": 2
+        },
+        "blue": {
+            "path": "",
+            "multiplier": 2
+        }
+    },
+    "coins": {
+        "gold": {
+            "path": "",
+            "value": 10
+        },
+        "silver": {
+            "path": "",
+            "value": 5
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
