@@ -11,8 +11,7 @@ class Player(pygame.sprite.Sprite):
     def __init__(
             self, 
             pos: Tuple[int, int],
-            create_jump_particles: Callable[[Tuple[int, int]], None],
-            throw_sword: Callable[[], None]
+            create_jump_particles: Callable[[Tuple[int, int]], None]
         ):
         super().__init__()
 
@@ -66,7 +65,6 @@ class Player(pygame.sprite.Sprite):
 
         # Sword and sword throwing
         self.has_sword = True
-        self.throw_sword = throw_sword
 
         # death animation
         self.is_dead = False

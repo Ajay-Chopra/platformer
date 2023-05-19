@@ -63,6 +63,7 @@ class Level:
         self.goal = pygame.sprite.GroupSingle() # the goal the player must reach to beat level
         self.explosion_sprite = pygame.sprite.GroupSingle() # explosion that plays when player kills enemy
         self.collect_effect_sprites = pygame.sprite.Group() # particle effect that plays when player collects an item
+        self.water_sprites = pygame.sprite.Group() # To check if player hits water
 
         # get csv layouts
         self.csv_layouts = {
@@ -227,8 +228,7 @@ class Level:
                             if col == "0":
                                 sprite = Player(
                                     pos=(x, y),
-                                    create_jump_particles=self.create_jump_particles,
-                                    throw_sword=self.handle_sword_throw
+                                    create_jump_particles=self.create_jump_particles
                                 )
                                 self.all_sprites.add(sprite)
                                 self.player.add(sprite)
@@ -244,7 +244,7 @@ class Level:
                             Water(
                                 pos=(x, y),
                                 size=settings.TILE_SIZE,
-                                groups=[self.all_sprites],
+                                groups=[self.all_sprites, self.water_sprites],
                                 path="../graphics/decoration/water"
                             )
                             
@@ -395,8 +395,9 @@ class Level:
         Check to see if the player has fallen off the map
         """
         player = self.player.sprite
-        if player.rect.bottom >= settings.SCREEN_HEIGHT:
-            self.player.sprite.health = 0
+        for water_sprite in self.water_sprites.sprites():
+            if pygame.sprite.collide_rect(player, water_sprite):
+                self.player.sprite.health = 0
     
     def get_player_on_ground(self):
         """
@@ -456,7 +457,7 @@ class Level:
         Check if player has reached goal, is off the map
         or is dead
         """
-        # self.check_player_off_map()
+        self.check_player_off_map()
         self.check_player_death()
         self.check_player_reached_goal()
     
