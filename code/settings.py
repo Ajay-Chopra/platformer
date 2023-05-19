@@ -140,16 +140,16 @@ SHOOTER_TRAP_DATA = {
 COLLECTABLE_ITEM_DATA = {
     "potions": {
         "red": {
-            "path": "",
+            "path": "../graphics/collectables/potions/red",
             "base_increase_amount": 20 
         },
         "green": {
-            "path": "",
+            "path": "../graphics/collectables/potions/green",
             "increase_amount": 20,
             "base_time_amount": 15000
         },
         "blue": {
-            "path": "",
+            "path": "../graphics/collectables/potions/blue",
             "increase_amount": 20,
             "base_time_amount": 150000
         }
@@ -160,21 +160,21 @@ COLLECTABLE_ITEM_DATA = {
             "multiplier": 2
         },
         "green": {
-            "path": "",
+            "path": "../graphics/collectables/diamonds/green",
             "multiplier": 2
         },
         "blue": {
-            "path": "",
+            "path": "../graphics/collectables/diamonds/blue",
             "multiplier": 2
         }
     },
     "coins": {
         "gold": {
-            "path": "",
+            "path": "../graphics/collectables/coins/gold",
             "value": 10
         },
         "silver": {
-            "path": "",
+            "path": "../graphics/collectables/coins/silver",
             "value": 5
         }
     }

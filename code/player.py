@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2(0,0)
         self.speed = 8
         self.gravity = 0.8
-        self.jump_speed = -16
+        self.jump_speed = -24
 
         # player status
         self.status = 'idle'
@@ -81,21 +81,11 @@ class Player(pygame.sprite.Sprite):
         """
         assets_path = '../graphics/character/'
         self.animations = {
-            'idle': [],
             'idle_s': [],
-            'run': [],
             'run_s': [],
-            'jump': [],
             'jump_s': [],
-            'fall': [],
             'fall_s': [],
-            'attack_1': [],
-            'attack_2': [],
-            'attack_3': [],
-            'dead_hit': [],
-            'air_attack_1': [],
-            'air_attack_2': [],
-            'throw_sword': []
+            'dead_hit': []
         }
         for animation in self.animations.keys():
             full_path = assets_path + animation
@@ -133,20 +123,6 @@ class Player(pygame.sprite.Sprite):
         else:
             flipped_image = pygame.transform.flip(image, flip_x=True, flip_y=False)
             self.image = flipped_image
-        
-        # set rectangle
-        if self.on_ground and self.on_right:
-            self.rect = self.image.get_rect(bottomright = self.rect.bottomright)
-        elif self.on_ground and self.on_left:
-            self.rect = self.image.get_rect(bottomleft = self.rect.bottomleft)
-        elif self.on_ground:
-            self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
-        elif self.on_ceiling and self.on_right:
-            self.rect = self.image.get_rect(topright = self.rect.topright)
-        elif self.on_ceiling and self.on_left:
-            self.rect = self.image.get_rect(topleft = self.rect.topleft)
-        elif self.on_ceiling:
-            self.rect = self.image.get_rect(midtop = self.rect.midtop)
         
         # flicker the player if he was damaged
         if not self.can_be_damaged:
@@ -229,30 +205,6 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_UP] and self.on_ground:
                 self.jump()
                 self.create_jump_particles(position = self.rect.midbottom)
-
-            if self.has_sword:
-                if keys[pygame.K_d]:
-                    self.is_attacking = True
-                    self.attack_time = pygame.time.get_ticks()
-                    self.status = 'attack_1'
-                    self.current_air_attack = 'air_attack_1'
-                elif keys[pygame.K_s]:
-                    self.is_attacking = True
-                    self.attack_time = pygame.time.get_ticks()
-                    self.status = 'attack_2'
-                    self.current_air_attack = 'air_attack_2'
-                elif keys[pygame.K_a]:
-                    self.is_attacking = True
-                    self.attack_time = pygame.time.get_ticks()
-                    self.status = 'attack_3'
-                    self.current_air_attack = None
-                elif keys[pygame.K_SPACE]:
-                    self.is_attacking = True
-                    self.attack_time = pygame.time.get_ticks()
-                    self.status = 'throw_sword'
-                    self.current_air_attack = 'throw_sword'
-                    sword_velocity = settings.SWORD_VELOCITY if self.facing_right else (-1 * settings.SWORD_VELOCITY)
-                    self.throw_sword(sword_velocity)
                                 
     def attack_cooldown(self) -> None:
         """
@@ -328,7 +280,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.silver_coins += 1
 
-    def update(self) -> None:
+    def update(self, x_shift=0, y_shift=0) -> None:
         """
         Receive user input and update variables
         """

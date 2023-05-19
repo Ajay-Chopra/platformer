@@ -21,7 +21,7 @@ class ParticleEffect(pygame.sprite.Sprite):
         else:
             self.image = self.frames[int(self.frame_index)]
     
-    def update(self, x_shift: int) -> None:
+    def update(self, x_shift: int, y_shift: int) -> None:
         """
         Animate sprites and update x position
         """

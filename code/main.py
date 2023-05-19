@@ -14,7 +14,7 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.level = Level("0", self.screen, self.run_overworld_callback, self.run_continue_game_callback, self.quit_game_callback)
+        self.level = Level("2", self.screen, self.run_overworld_callback, self.run_continue_game_callback, self.quit_game_callback)
         # self.overworld = Overworld(furthest_unlocked_level="1", run_level_callback=self.run_level_callback)
         self.continue_game = ContinueGame()
         self.mode = "LEVEL"

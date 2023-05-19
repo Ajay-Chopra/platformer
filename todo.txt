@@ -25,7 +25,8 @@ TODO:
     a. If a player is hit by a projectile from a shooter trap, the player takes damage
     b. Player can destroy projectiles midflight by jumping on them
 
-List
-    - export all collectable images
-    - export all effects
+Actual stuff to do
+    - figure out some other way to handle player off screen since we can't use screen height anymore
+        - if they hit the water they die
+    - think about adding double jump
     

@@ -3,7 +3,10 @@ import pygame
 from sprite import (
     StaticTile, 
     Palm, 
-    Crate, 
+    Crate,
+    Crabs,
+    Tooth,
+    Star,
     Shell, 
     Cannon, 
     Water, 
@@ -11,11 +14,13 @@ from sprite import (
     GoldCoin, 
     RedDiamond,
     BlueDiamond,
-    GreenDiamond
-
+    GreenDiamond,
+    RedPotion,
+    BluePotion,
+    GreenPotion,
+    ParticleEffect
 )
 from player import Player
-from particles import ParticleEffect
 from ui import UI
 from title import Title
 import settings as settings
@@ -38,11 +43,17 @@ class Level:
         self.run_overworld_callback = run_overworld_callback
         
         # Setup horizontal scrolling
-        self.world_shift = 0
+        self.world_x_shift = 0
         self.current_x = 0
+        self.player_on_ground = False
+
+        # Setup vertical scrolling
+        self.world_y_shift = 0
+        self.current_y = 0
 
         # set up sprite groups
-        self.all_sprites = pygame.sprite.Group() # holds all of the sprites
+        # self.all_sprites = CameraGroup() # holds all of the sprites
+        self.all_sprites = CameraGroup() # holds all of the sprites
         self.collectable_sprites = pygame.sprite.Group() # items that can be collected by the player
         self.damage_sprites = pygame.sprite.Group() # sprites that can inflict damage on the player
         self.collision_sprites = pygame.sprite.Group() # sprites that player can collide with
@@ -55,25 +66,27 @@ class Level:
 
         # get csv layouts
         self.csv_layouts = {
-            "Player": [],
             "Sky": [],
+            "Constraints": [],
             "Clouds": [],
-            "Terrain": [],
             "BG_Palms": [],
-            "FG_Palms": [],
+            "Player": [],
+            "Terrain": [],
             "Crates": [],
-            "Coins": [],
+            "Collectables": [],
             "Enemy": [],
-            "Constraints": []
+            "Shooters": [],
+            "Water": []
         }
         self.get_level_layer_data()
         self.setup_level_sprites()
 
+        # Setup vertical scrolling
+        self.world_y_shift = self.player.sprite.rect.centery - (settings.SCREEN_HEIGHT / 2)
+        self.current_y = 0
+
         # UI setup
         self.ui = UI()
-
-        # Last but not least the water
-        self.water = Water(top=settings.SCREEN_HEIGHT - 20, level_width=self.level_width)
     
     def get_level_layer_data(self) -> None:
         """
@@ -144,28 +157,28 @@ class Level:
                                 groups=[self.all_sprites, self.collision_sprites],
                                 surface=pygame.image.load("../graphics/terrain/crate.png").convert_alpha()
                             )
-                        elif layer_name == "Coins":
+                        elif layer_name == "Collectables":
                             if col == "0":
+                                BlueDiamond(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["diamonds"]["blue"]["path"]
+                                )
+                            elif col == "1":
+                                BluePotion(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["potions"]["blue"]["path"]
+                                )
+                            elif col == "2":
                                 GoldCoin(
                                     pos=(x, y),
                                     size=settings.TILE_SIZE,
                                     groups=[self.all_sprites, self.collectable_sprites],
-                                    path="../graphics/coins/gold"
+                                    path=settings.COLLECTABLE_ITEM_DATA["coins"]["gold"]["path"]
                                 )
-                            elif col == "1":
-                                # SilverCoin(
-                                #     pos=(x, y),
-                                #     size=settings.TILE_SIZE,
-                                #     groups=[self.all_sprites, self.collectable_sprites],
-                                #     path="../graphics/coins/silver"
-                                # )
-                                RedDiamond(
-                                    pos=(x, y),
-                                    size=settings.TILE_SIZE,
-                                    groups=[self.all_sprites, self.collectable_sprites],
-                                    path=settings.COLLECTABLE_ITEM_DATA["diamonds"]["red"]["path"]
-                                )
-
                         elif layer_name == "Constraints":
                             StaticTile(
                                 pos=(x, y),
@@ -174,21 +187,42 @@ class Level:
                                 surface=pygame.image.load("../graphics/enemy/setup_tile.png")
                             )
                         elif layer_name == "Enemy":
-                            # Enemy(
-                            #     pos=(x, y),
-                            #     size=settings.TILE_SIZE,
-                            #     groups=[self.all_sprites, self.damage_sprites],
-                            #     constraint_sprites=self.constraint_sprites,
-                            #     path="../graphics/enemy/crabs",
-                            #     animation_speed=0.30,
-                            #     min_speed=5,
-                            #     max_speed=10
-                            # )
-                            Cannon(
-                                pos=(x, y),
-                                size=settings.TILE_SIZE,
-                                groups=[self.all_sprites, self.damage_sprites]
-                            )
+                            if col == "0":
+                                Crabs(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.damage_sprites],
+                                    constraint_sprites=self.constraint_sprites
+                                )
+                            elif col == "1":
+                                Tooth(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.damage_sprites],
+                                    constraint_sprites=self.constraint_sprites
+                                )
+                            elif col == "2":
+                                Star(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.damage_sprites],
+                                    constraint_sprites=self.constraint_sprites
+                                )
+                        elif layer_name == "Shooters":
+                            if col == "0":
+                                Cannon(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.damage_sprites],
+                                    direction="left"
+                                )
+                            elif col == "1":
+                                Cannon(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.damage_sprites],
+                                    direction="right"
+                                )                        
                         elif layer_name == "Player":
                             if col == "0":
                                 sprite = Player(
@@ -196,6 +230,7 @@ class Level:
                                     create_jump_particles=self.create_jump_particles,
                                     throw_sword=self.handle_sword_throw
                                 )
+                                self.all_sprites.add(sprite)
                                 self.player.add(sprite)
                             elif col == "1":
                                 sprite = StaticTile(
@@ -205,6 +240,13 @@ class Level:
                                     surface=pygame.image.load("../graphics/character/hat.png").convert_alpha()
                                 )
                                 self.goal.add(sprite)
+                        elif layer_name == "Water":
+                            Water(
+                                pos=(x, y),
+                                size=settings.TILE_SIZE,
+                                groups=[self.all_sprites],
+                                path="../graphics/decoration/water"
+                            )
                             
     def create_sky_sprite(self, pos: Tuple[int, int], cell_value: str):
         """
@@ -227,17 +269,33 @@ class Level:
         """
         player = self.player.sprite
         player_x = player.rect.centerx
+        print(f"Player_X: {player_x}")
         player_x_direction = player.direction.x
 
         if player_x < (settings.SCREEN_WIDTH / 4) and player_x_direction < 0:
-            self.world_shift = 8
+            self.world_x_shift = 8
             player.speed = 0
         elif player_x > (settings.SCREEN_WIDTH - (settings.SCREEN_WIDTH / 4)) and player_x_direction > 0:
-            self.world_shift = - 8
+            self.world_x_shift = - 8
             player.speed = 0
         else:
-            self.world_shift = 0
+            self.world_x_shift = 0
             player.speed = 8
+
+    def scroll_y(self) -> None:
+        """
+        """
+        player = self.player.sprite
+        player_y = player.rect.centery
+        print(player_y)
+        player_y_direction = player.direction.y
+
+        if player_y < (settings.SCREEN_HEIGHT / 4) and player_y_direction < 0:
+            self.world_y_shift = 24
+        elif player_y > (settings.SCREEN_HEIGHT - (settings.SCREEN_HEIGHT / 4)) and player_y_direction > 0:
+            self.world_y_shift = -24
+        else:
+            self.world_y_shift = 0
      
     def horizontal_movement_collision(self) -> None:
         """
@@ -294,14 +352,14 @@ class Level:
         for item in collected_items:
             item.perform_player_modification(self.player.sprite)
             effect_path = item.effect_path
-            print(effect_path)
             self.collect_effect_sprites.add(
-                ParticleEffect(position=item.rect.center, path=effect_path)
+                ParticleEffect(
+                    pos=item.rect.center,
+                    size=settings.TILE_SIZE,
+                    groups=[self.all_sprites], 
+                    path=effect_path
+                )
             )
-
-        # for coin in collected_coins:
-        #     coin.perform_player_modification(self.player.sprite)
-        #     # self.player.sprite.update_coins(coin.type)
     
     def player_enemy_collision(self) -> None:
         """
@@ -317,7 +375,9 @@ class Level:
                 if enemy_top < player_bottom < enemy_center and player.direction.y >= 0:
                     player.direction.y = -15
                     self.explosion_sprite.add(ParticleEffect(
-                        position=enemy_sprite.rect.center,
+                        pos=enemy_sprite.rect.center,
+                        size=settings.TILE_SIZE,
+                        groups=[self.all_sprites],
                         path="../graphics/enemy/explosion"
                     ))
                     enemy_sprite.kill()
@@ -363,7 +423,12 @@ class Level:
             position -= pygame.math.Vector2(10,5)
         else:
             position += pygame.math.Vector2(10, -5)
-        self.dust_sprite.add(ParticleEffect(position=position, path="../graphics/character/dust_particles/jump"))
+        self.dust_sprite.add(ParticleEffect(
+            pos=position,
+            size=settings.TILE_SIZE,
+            groups=[self.all_sprites], 
+            path="../graphics/character/dust_particles/jump")
+        )
     
     def create_landing_particles(self) -> None:
         """
@@ -374,7 +439,12 @@ class Level:
                 offset = pygame.math.Vector2(10, 15)
             else:
                 offset = pygame.math.Vector2(-10, 15)
-            landing_particle = ParticleEffect(self.player.sprite.rect.midbottom - offset, "../graphics/character/dust_particles/land")
+            landing_particle = ParticleEffect(
+                pos=self.player.sprite.rect.midbottom - offset,
+                size=settings.TILE_SIZE,
+                groups=[self.all_sprites],
+                path="../graphics/character/dust_particles/land"
+            )
             self.dust_sprite.add(landing_particle)
     
     def check_player_death(self) -> None:
@@ -382,7 +452,8 @@ class Level:
         Check to see if player's health is at or below 0
         """
         if self.player.sprite.health <= 0:
-            self.player.sprite.run_death_animation()
+            pass
+            # self.player.sprite.run_death_animation()
     
     def check_player_reached_goal(self) -> None:
         """
@@ -399,7 +470,7 @@ class Level:
         Check if player has reached goal, is off the map
         or is dead
         """
-        self.check_player_off_map()
+        # self.check_player_off_map()
         self.check_player_death()
         self.check_player_reached_goal()
     
@@ -419,22 +490,38 @@ class Level:
         """
         Update all sprites and display them
         """
-        self.all_sprites.update(self.world_shift)
-        self.all_sprites.draw(self.display_surface)
-        self.player.update()
-        self.player.draw(self.display_surface)
-        self.dust_sprite.update(self.world_shift)
+        self.all_sprites.custom_draw(self.player.sprite)
+        self.all_sprites.update(0, 0)
+        self.dust_sprite.update(0, 0)
         self.dust_sprite.draw(self.display_surface)
-        self.explosion_sprite.update(self.world_shift)
-        self.explosion_sprite.draw(self.display_surface)
-        self.collect_effect_sprites.update(self.world_shift)
-        self.collect_effect_sprites.draw(self.display_surface)
-        self.water.draw(self.display_surface, self.world_shift)
-        self.scroll_x()
+        self.create_landing_particles()
         self.check_player_status()
         self.check_collisions()
         self.ui.display(
             player_health=self.player.sprite.health,
             gold_coins=self.player.sprite.gold_coins,
             silver_coins=self.player.sprite.silver_coins
-        )      
+        )
+
+
+class CameraGroup(pygame.sprite.Group):
+    """
+    Custom sprite group that contains all sprites and draws them
+    according to the player's position
+    """
+    def __init__(self):
+        super().__init__()
+        self.display_surface = pygame.display.get_surface()
+        self.offset = pygame.math.Vector2()
+    
+    def custom_draw(self, player: pygame.sprite.Sprite):
+        """
+        Draw all sprites
+        """
+        self.offset.x = player.rect.centerx - (settings.SCREEN_WIDTH / 2)
+        self.offset.y = player.rect.centery - (settings.SCREEN_HEIGHT / 2)
+
+        for sprite in self:
+            offset_rect = sprite.rect.copy()
+            offset_rect.center -= self.offset
+            self.display_surface.blit(sprite.image, offset_rect)

@@ -20,12 +20,13 @@ class Generic(pygame.sprite.Sprite):
         self.image = pygame.Surface((size, size))
         self.rect = self.image.get_rect(topleft=pos)
     
-    def update(self, x_shift: int) -> None:
+    def update(self, x_shift: int, y_shift: int) -> None:
         """
         All tiles must have their x coordinate shifted
         based on player movement
         """
         self.rect.x += x_shift
+        self.rect.y += y_shift
     
 
 class StaticTile(Generic):
@@ -87,12 +88,13 @@ class AnimatedTile(Generic):
             self.frame_index = 0
         self.image = self.frames[int(self.frame_index)]
     
-    def update(self, x_shift: int) -> None:
+    def update(self, x_shift: int, y_shift: int) -> None:
         """
         Update the tile by shifting it and
         also running the animation
         """
         self.rect.x += x_shift
+        self.rect.y += y_shift
         self.animate()
 
 
@@ -112,6 +114,19 @@ class Palm(AnimatedTile):
         x, y = pos
         offset_y = y - offset
         self.rect.topleft = (x, offset_y)
+
+class Water(AnimatedTile):
+    """
+    For the water at the bottom of the screen
+    """
+    def __init__(
+        self,
+        pos: Tuple[int , int],
+        size: int, 
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups, path)
 
 
 class Collectable(AnimatedTile):
@@ -317,7 +332,39 @@ class Skull(Collectable):
         super().__init__(pos, size, groups, path)
         self.effect_path = "../graphics/collectables/skull/effect"
         
+
+class ParticleEffect(Generic):
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        path: str
+    ):
+        super().__init__(pos, size, groups)
+        self.frame_index = 0
+        self.animation_speed = 0.15
+        self.frames = import_folder(path)
+        self.image = self.frames[self.frame_index]
+        self.rect = self.image.get_rect(center=pos)
     
+    def animate(self) -> None:
+        """
+        Loop through the animation only once
+        """
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(self.frames):
+            self.kill()
+        else:
+            self.image = self.frames[int(self.frame_index)]
+    
+    def update(self, x_shift: int, y_shift: int) -> None:
+        """
+        Animate sprites and update the x position
+        """
+        self.animate()
+        self.rect.x += x_shift
+        self.rect.y += y_shift
     
 
 
@@ -334,7 +381,7 @@ class Enemy(AnimatedTile):
         path: str,
         animation_speed: float,
         min_speed: int,
-        max_speed
+        max_speed: int
     ):
         super().__init__(pos, size, groups, path)
         self.constraint_sprites = constraint_sprites
@@ -360,12 +407,79 @@ class Enemy(AnimatedTile):
     def reverse(self) -> None:
         self.speed *= -1
     
-    def update(self, x_shift: int) -> None:
+    def update(self, x_shift: int, y_shift: int) -> None:
         self.rect.x += x_shift
+        self.rect.y += y_shift
         self.move()
         self.check_for_collision()
         self.animate()
         self.reverse_image()
+
+class Crabs(Enemy):
+    """
+    The crab enemy
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        constraint_sprites: pygame.sprite.Group
+    ):
+        super().__init__(
+            pos,
+            size,
+            groups,
+            constraint_sprites,
+            path="../graphics/enemy/crabs",
+            animation_speed=0.15,
+            min_speed=3,
+            max_speed=5
+        )
+
+class Tooth(Enemy):
+    """
+    The crab enemy
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        constraint_sprites: pygame.sprite.Group
+    ):
+        super().__init__(
+            pos,
+            size,
+            groups,
+            constraint_sprites,
+            path="../graphics/enemy/tooth/run",
+            animation_speed=0.15,
+            min_speed=3,
+            max_speed=5
+        )
+
+class Star(Enemy):
+    """
+    The crab enemy
+    """
+    def __init__(
+        self,
+        pos: Tuple[int, int],
+        size: int,
+        groups: List[pygame.sprite.Group],
+        constraint_sprites: pygame.sprite.Group
+    ):
+        super().__init__(
+            pos,
+            size,
+            groups,
+            constraint_sprites,
+            path="../graphics/enemy/star",
+            animation_speed=0.50,
+            min_speed=8,
+            max_speed=10
+        )
 
 
 class ShooterTrap(Generic):
@@ -377,9 +491,11 @@ class ShooterTrap(Generic):
         pos: Tuple[int, int],
         size: int,
         groups: List[pygame.sprite.Group],
-        path: str
+        path: str,
+        direction: str
     ):
         super().__init__(pos, size, groups)
+        self.direction = direction
 
         # These will be overwritten by the child class
         self.shoot_frame = 2
@@ -397,7 +513,7 @@ class ShooterTrap(Generic):
         }
         self.get_assets(path)
         self.frame_index = 0
-        self.status = 'left_attack'
+        self.status = self.direction + '_attack'
         self.image = self.animation_frames[self.status][self.frame_index]
         self.rect = self.image.get_rect(topleft = pos)
         self.rect.bottom = self.rect.top + settings.TILE_SIZE
@@ -448,15 +564,16 @@ class ShooterTrap(Generic):
 
     def get_status(self):
         if not self.attack_cooldown.active:
-            self.status = 'left_attack'
+            self.status = self.direction + '_attack'
         else:
-            self.status = 'left_idle'
+            self.status = self.direction + '_idle'
 
-    def update(self, x_shift: int) -> None:
+    def update(self, x_shift: int, y_shift: int) -> None:
         """
         Shift the x coordinate based on player movement
         """
         self.rect.x += x_shift
+        self.rect.y += y_shift
         self.get_status()
         self.animate()
         self.attack_cooldown.update()
@@ -470,9 +587,10 @@ class Shell(ShooterTrap):
         self,
         pos: Tuple[int, int],
         size: int,
-        groups: List[pygame.sprite.Group]
+        groups: List[pygame.sprite.Group],
+        direction: str
     ):
-        super().__int__(pos, size, groups, "../graphics/enemy/shell")
+        super().__int__(pos, size, groups, "../graphics/enemy/shell", direction)
         self.shoot_frame = 2
         self.projectile_surface = pygame.image.load("../graphics/projectiles/pearl/pearl.png")
         self.projectile_speed = 20
@@ -489,9 +607,10 @@ class Cannon(ShooterTrap):
         self,
         pos: Tuple[int, int],
         size: int,
-        groups: List[pygame.sprite.Group]
+        groups: List[pygame.sprite.Group],
+        direction: str
     ):
-        super().__init__(pos, size, groups, path="../graphics/enemy/cannon")
+        super().__init__(pos, size, groups, "../graphics/enemy/cannon", direction)
         self.shoot_frame = 4
         self.projectile_surface = pygame.image.load("../graphics/projectiles/cannon/ball.png")
         self.projectile_speed = 20
@@ -525,28 +644,10 @@ class Projectile(Generic):
         self.timer = Timer(6000)
         self.timer.activate()
     
-    def update(self, x_shift: int):
+    def update(self, x_shift: int, y_shift: int):
         self.pos.x += self.direction.x * self.speed
         self.rect.x = round(self.pos.x)
 
         self.timer.update()
         if not self.timer.active:
             self.kill()
-
-
-class Water:
-    def __init__(self,top,level_width):
-        water_start = -settings.SCREEN_WIDTH
-        water_tile_width = 192
-        tile_x_amount = int((level_width + settings.SCREEN_WIDTH * 2) / water_tile_width)
-        self.water_sprites = pygame.sprite.Group()
-
-        for tile in range(tile_x_amount):
-            x = tile * water_tile_width + water_start
-            y = top
-            sprite = AnimatedTile((x, y), 192, [], "../graphics/decoration/water")
-            self.water_sprites.add(sprite)
-            
-    def draw(self,surface,shift):
-        self.water_sprites.update(shift)
-        self.water_sprites.draw(surface)
