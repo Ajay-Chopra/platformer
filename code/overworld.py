@@ -2,17 +2,31 @@ import pygame
 import math
 from typing import Tuple
 import settings as settings
-from sprite import AnimatedTile
+from util import import_folder
 
 
-class Node(AnimatedTile):
+class Node(pygame.sprite.Sprite):
     """
     Represents a single node (representing a level)
     of the overworld
     """
     def __init__(self, pos: Tuple[int, int], size: int, path: str, level_name: str):
-        super().__init__(pos, size, path)
+        super().__init__()
+        self.frames = import_folder(path)
+        self.frame_index = 0
+        self.image = self.frames[self.frame_index]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.animation_speed = 0.15
         self.level_name = level_name
+    
+    def animate(self) -> None:
+        """
+        Update the current image
+        """
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(self.frames):
+            self.frame_index = 0
+        self.image = self.frames[int(self.frame_index)]
     
     def custom_update(self, is_reachable: bool):
         """
@@ -26,14 +40,10 @@ class Node(AnimatedTile):
         else:
             self.animate()
 
-    def custom_draw(self, display_surface, is_reachable: bool):
+    def custom_draw(self, display_surface):
         """
         Custom draw function taht takes into account reachability of node
         """
-        if not is_reachable:
-            tint_surface = self.image.copy()
-            tint_surface.fill('black', None, pygame.BLEND_RGBA_MULT)
-            self.image.blit(tint_surface, (0, 0))
         display_surface.blit(self.image, self.rect)
 
 
@@ -148,7 +158,8 @@ class Overworld:
         for sprite in self.node_sprites.sprites():
             is_reachable = int(sprite.level_name) <= int(self.furthest_unlocked_level)
             sprite.custom_update(is_reachable=is_reachable)
-        self.node_sprites.draw(self.display_surface)
+            sprite.custom_draw(self.display_surface)
+        # self.node_sprites.custom_draw(self.display_surface)
     
     def draw_connections(self):
         """

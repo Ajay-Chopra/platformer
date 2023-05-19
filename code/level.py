@@ -390,20 +390,6 @@ class Level:
                         elif enemy_sprite.rect.right >= player.rect.left:
                             self.player.sprite.get_damage(direction="left")
     
-    def handle_sword_throw(self, sword_velocity: int) -> None:
-        """
-        Display spinning sword after player
-        throws sword
-        """
-        player = self.player.sprite
-        self.projectile_sprites.add(Projectile(
-            pos=player.rect.topleft,
-            velocity=sword_velocity,
-            path="../graphics/projectiles/sword_spinning",
-            collidable_sprites=self.terrain_tiles.sprites(),
-            killable_sprites=self.enemy_sprites.sprites()
-        ))
-
     def check_player_off_map(self):
         """
         Check to see if the player has fallen off the map
@@ -452,7 +438,7 @@ class Level:
         Check to see if player's health is at or below 0
         """
         if self.player.sprite.health <= 0:
-            pass
+            self.run_overworld_callback(new_furthest_unlocked_level=self.level_number)
             # self.player.sprite.run_death_animation()
     
     def check_player_reached_goal(self) -> None:

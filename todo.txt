@@ -26,7 +26,8 @@ TODO:
     b. Player can destroy projectiles midflight by jumping on them
 
 Actual stuff to do
-    - figure out some other way to handle player off screen since we can't use screen height anymore
-        - if they hit the water they die
-    - think about adding double jump
+    - reincorporate the overworld
+    - handle player death
+    - make collectables effective
+
     
