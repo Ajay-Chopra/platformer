@@ -1,8 +1,9 @@
 import pygame
 from typing import Tuple, Callable, List
-import settings
+from timer import Timer
 from util import import_folder
 from math import sin
+import settings
 
 class Player(pygame.sprite.Sprite):
     """
@@ -11,7 +12,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(
             self, 
             pos: Tuple[int, int],
-            create_jump_particles: Callable[[Tuple[int, int]], None]
+            create_jump_particles: Callable[[Tuple[int, int]], None],
+            toggle_shooter_traps: Callable[[bool], None]
         ):
         super().__init__()
 
@@ -19,7 +21,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2(0,0)
         self.speed = 8
         self.gravity = 0.8
-        self.jump_speed = -24
+        self.jump_speed = -16
 
         # player status
         self.status = 'idle'
@@ -51,10 +53,34 @@ class Player(pygame.sprite.Sprite):
         self.can_be_damaged = True
         self.damage_timeout = 300
 
-        # Coins and health
+        # Coins
         self.silver_coins = 0
         self.gold_coins = 0
+
+        # Health
         self.health = 100
+        self.health_increase_amount = settings.COLLECTABLE_ITEM_DATA["diamonds"]["red"]["increase_amount"]
+
+        # potions
+        self.potion_timeouts = {
+            "blue": settings.COLLECTABLE_ITEM_DATA["potions"]["blue"]["base_time_amount"],
+            "green": settings.COLLECTABLE_ITEM_DATA["potions"]["green"]["base_time_amount"]
+        }
+        self.potion_timers = {
+            "blue": Timer(self.potion_timeouts["blue"]),
+            "green": Timer(self.potion_timeouts["green"])
+        }
+        self.toggle_shooter_traps = toggle_shooter_traps
+
+        # diamonds
+        self.diamond_counts = {
+            "blue": 0,
+            "green": 0,
+            "red": 0
+        }
+
+        # skulls
+        self.skulls = 0
 
         # Attack status
         self.is_attacking = False
@@ -277,6 +303,71 @@ class Player(pygame.sprite.Sprite):
             self.gold_coins += 1
         else:
             self.silver_coins += 1
+    
+    def handle_blue_potion(self):
+        """
+        Update the player's jump height
+        """
+        self.jump_speed -= settings.COLLECTABLE_ITEM_DATA["potions"]["blue"]["increase_amount"]
+        self.potion_timers["blue"].activate()
+        self.diamond_counts["blue"] = 0
+    
+    def handle_green_potion(self):
+        """
+        Disable all shooter traps
+        """
+        self.toggle_shooter_traps(active=False)
+        self.potion_timers["green"].activate()
+        self.diamond_counts["green"] = 0
+    
+    def handle_red_potion(self):
+        """
+        Increase player health
+        """
+        self.health_increase_amount += self.diamond_counts["red"] * settings.COLLECTABLE_ITEM_DATA["diamonds"]["red"]["increase_amount"]
+        self.diamond_counts["red"] = 0
+        if self.health < 100:
+            self.health += settings.COLLECTABLE_ITEM_DATA["potions"]["red"]["base_increase_amount"]
+            self.health = min(100, self.health)
+    
+    def handle_diamond(self, color: str) -> None:
+        """
+        Handle diamond depending on color
+        """
+        self.diamond_counts[color] += 1
+        if color == "blue" or color == "green":
+            self.potion_timeouts[color] += self.diamond_counts[color] * settings.COLLECTABLE_ITEM_DATA["diamonds"][color]["increase_amount"]
+            potion_timer = self.potion_timers[color]
+            if potion_timer.active:
+                time_remaining = potion_timer.duration - potion_timer.time_running
+                potion_timer.deactivate()
+                potion_timer = Timer(time_remaining + self.potion_timeouts[color])
+                potion_timer.activate()
+                self.diamond_counts[color] = 0
+            else:
+                potion_timer = Timer(self.potion_timeouts[color])
+            self.potion_timers[color] = potion_timer
+    
+    def handle_skull(self) -> None:
+        self.skulls += 1
+        
+    def check_potion_timer_expirations(self):
+        """
+        Check to see if the potion timers have expired
+        """
+        if not self.potion_timers["blue"].active:
+            self.jump_speed = -16
+            self.potion_timeouts["blue"] = settings.COLLECTABLE_ITEM_DATA["potions"]["blue"]["base_time_amount"]
+        if not self.potion_timers["green"].active:
+            self.toggle_shooter_traps(active=True)
+            self.potion_timeouts["green"] = settings.COLLECTABLE_ITEM_DATA["potions"]["green"]["base_time_amount"]
+    
+    def update_potion_timers(self):
+        """
+        Update the potion timers
+        """
+        self.potion_timers["blue"].update()
+        self.potion_timers["green"].update()
 
     def update(self, x_shift=0, y_shift=0) -> None:
         """
@@ -287,3 +378,5 @@ class Player(pygame.sprite.Sprite):
         self.animate()
         self.animate_dust()
         self.check_damage_timeout()
+        self.check_potion_timer_expirations()
+        self.update_potion_timers()

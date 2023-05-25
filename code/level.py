@@ -18,6 +18,7 @@ from sprite import (
     RedPotion,
     BluePotion,
     GreenPotion,
+    Skull,
     ParticleEffect
 )
 from player import Player
@@ -56,6 +57,7 @@ class Level:
         self.all_sprites = CameraGroup() # holds all of the sprites
         self.collectable_sprites = pygame.sprite.Group() # items that can be collected by the player
         self.damage_sprites = pygame.sprite.Group() # sprites that can inflict damage on the player
+        self.shooter_sprites = pygame.sprite.Group() # All shooter trap sprites
         self.collision_sprites = pygame.sprite.Group() # sprites that player can collide with
         self.constraint_sprites = pygame.sprite.Group() # constraint tiles for the enemies
         self.player = pygame.sprite.GroupSingle() # the player
@@ -180,6 +182,48 @@ class Level:
                                     groups=[self.all_sprites, self.collectable_sprites],
                                     path=settings.COLLECTABLE_ITEM_DATA["coins"]["gold"]["path"]
                                 )
+                            elif col == "3":
+                                Skull(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["skull"]["path"]
+                                )
+                            elif col == "4":
+                                GreenPotion(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["potions"]["green"]["path"]
+                                )
+                            elif col == "5":
+                                GreenDiamond(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["diamonds"]["green"]["path"]
+                                )
+                            elif col == "6":
+                                RedDiamond(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["diamonds"]["red"]["path"]
+                                )
+                            elif col == "7":
+                                RedPotion(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["potions"]["red"]["path"]
+                                )
+                            elif col == "8":
+                                SilverCoin(
+                                    pos=(x, y),
+                                    size=settings.TILE_SIZE,
+                                    groups=[self.all_sprites, self.collectable_sprites],
+                                    path=settings.COLLECTABLE_ITEM_DATA["coins"]["silver"]["path"] 
+                                )
                         elif layer_name == "Constraints":
                             StaticTile(
                                 pos=(x, y),
@@ -214,21 +258,22 @@ class Level:
                                 Cannon(
                                     pos=(x, y),
                                     size=settings.TILE_SIZE,
-                                    groups=[self.all_sprites, self.damage_sprites],
+                                    groups=[self.all_sprites, self.damage_sprites, self.shooter_sprites],
                                     direction="left"
                                 )
                             elif col == "1":
                                 Cannon(
                                     pos=(x, y),
                                     size=settings.TILE_SIZE,
-                                    groups=[self.all_sprites, self.damage_sprites],
+                                    groups=[self.all_sprites, self.damage_sprites, self.shooter_sprites],
                                     direction="right"
                                 )                        
                         elif layer_name == "Player":
                             if col == "0":
                                 sprite = Player(
                                     pos=(x, y),
-                                    create_jump_particles=self.create_jump_particles
+                                    create_jump_particles=self.create_jump_particles,
+                                    toggle_shooter_traps=self.toggle_shooter_traps_active
                                 )
                                 self.all_sprites.add(sprite)
                                 self.player.add(sprite)
@@ -439,7 +484,11 @@ class Level:
         Check to see if player's health is at or below 0
         """
         if self.player.sprite.health <= 0:
-            self.run_overworld_callback(new_furthest_unlocked_level=self.level_number)
+            if self.player.sprite.skulls > 0:
+                self.player.sprite.skulls -= 1
+                self.player.sprite.health = 100
+            else:
+                self.run_overworld_callback(new_furthest_unlocked_level=self.level_number)
             # self.player.sprite.run_death_animation()
     
     def check_player_reached_goal(self) -> None:
@@ -473,6 +522,28 @@ class Level:
         self.item_collision()
         self.player_enemy_collision()
 
+    def toggle_shooter_traps_active(self, active: bool) -> None:
+        """
+        Toggle shooter traps between active/inactive
+        """
+        for shooter_sprite in self.shooter_sprites.sprites():
+            shooter_sprite.active = active
+    
+    def disable_shooter_traps(self) -> None:
+        """
+        Disable all of the shooter trap sprites
+        """
+        for shooter_sprite in self.shooter_sprites.sprites():
+            shooter_sprite.active = False
+    
+    def enable_shooter_traps(self) -> None:
+        """
+        Enable all of the shooter traps again
+        """
+        for shooter_sprite in self.shooter_sprites.sprites():
+            shooter_sprite.active = True
+
+
     def run(self) -> None:
         """
         Update all sprites and display them
@@ -485,9 +556,7 @@ class Level:
         self.check_player_status()
         self.check_collisions()
         self.ui.display(
-            player_health=self.player.sprite.health,
-            gold_coins=self.player.sprite.gold_coins,
-            silver_coins=self.player.sprite.silver_coins
+            player=self.player.sprite
         )
 
 

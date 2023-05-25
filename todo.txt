@@ -26,8 +26,9 @@ TODO:
     b. Player can destroy projectiles midflight by jumping on them
 
 Actual stuff to do
-    - reincorporate the overworld (Done)
-    - handle player death (Done)
-    - make collectables effective (Done)
+    - make collectables effective
+        - potions (done)
+        - diamonds (done)
+        - skull (to do)
 
     

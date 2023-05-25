@@ -47,10 +47,27 @@ HEALTH_BAR_POS = (50, 50)
 HEALTH_BAR_RECT_POS = (84, 79)
 MAX_HEALTH_RECT_WIDTH = 152
 HEALTH_RECT_HEIGHT = 4
-GOLD_COIN_IMAGE_POS = (45, 120)
-GOLD_COIN_TEXT_POS = (85, 130)
-SILVER_COIN_IMAGE_POS = (47, 170)
-SILVER_COIN_TEXT_POS = (87, 180)
+
+MAX_POTION_RECT_WIDTH = 152
+POTION_RECT_HEIGHT = 10
+
+# GOLD_COIN_IMAGE_POS = (45, 120)
+# GOLD_COIN_TEXT_POS = (85, 130)
+# SILVER_COIN_IMAGE_POS = (47, 170)
+# SILVER_COIN_TEXT_POS = (87, 180)
+
+BLUE_DIAMOND_IMAGE_POS = (300, 70)
+BLUE_DIAMOND_TEXT_POS = (330, 70)
+GREEN_DIAMOND_IMAGE_POS = (390, 70)
+GREEN_DIAMOND_TEXT_POS = (420, 70)
+RED_DIAMOND_IMAGE_POS = (480, 70)
+RED_DIAMOND_TEXT_POS = (510, 70)
+GOLD_COIN_IMAGE_POS = (570, 70)
+GOLD_COIN_TEXT_POS = (600, 70)
+SILVER_COIN_IMAGE_POS = (660, 70)
+SILVER_COIN_TEXT_POS = (690, 70)
+SKULL_IMAGE_POS = (730, 55)
+SKULL_TEXT_POS = (760, 70)
 
 # Title settings
 TITLE_CENTER_POS = (SCREEN_WIDTH / 2, 100)
@@ -145,26 +162,37 @@ COLLECTABLE_ITEM_DATA = {
         },
         "green": {
             "path": "../graphics/collectables/potions/green",
+            "ui_path": "../graphics/collectables/potions/green/green_potion1.png",
+            "image_pos": (50, 170),
+            "timer_pos": (70, 180),
             "increase_amount": 20,
-            "base_time_amount": 15000
+            "base_time_amount": 10000
         },
         "blue": {
             "path": "../graphics/collectables/potions/blue",
+            "ui_path": "../graphics/collectables/potions/blue/blue_potion1.png",
+            "image_pos": (55, 135),
+            "timer_pos": (70, 140),
             "increase_amount": 20,
-            "base_time_amount": 150000
+            "base_time_amount": 10000
         }
     },
     "diamonds": {
         "red": {
             "path": "../graphics/collectables/diamonds/red",
-            "multiplier": 2
+            "increase_amount": 20,
+            "ui_path": "../graphics/ui/collectable_images/red_diamond1.png"
         },
         "green": {
             "path": "../graphics/collectables/diamonds/green",
-            "multiplier": 2
+            "multiplier": 2,
+            "increase_amount": 5000,
+            "ui_path": "../graphics/ui/collectable_images/green_diamond1.png"
         },
         "blue": {
             "path": "../graphics/collectables/diamonds/blue",
+            "ui_path": "../graphics/ui/collectable_images/blue_diamond1.png",
+            "increase_amount": 5000,
             "multiplier": 2
         }
     },
@@ -177,6 +205,10 @@ COLLECTABLE_ITEM_DATA = {
             "path": "../graphics/collectables/coins/silver",
             "value": 5
         }
+    },
+    "skull": {
+        "path": "../graphics/collectables/skull/skull",
+        "ui_path": "../graphics/ui/collectable_images/skull_real1.png"
     }
 }
 

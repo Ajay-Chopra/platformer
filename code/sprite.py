@@ -230,6 +230,9 @@ class RedDiamond(Diamond):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_diamond(color="red")
 
 
 class BlueDiamond(Diamond):
@@ -244,6 +247,9 @@ class BlueDiamond(Diamond):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_diamond(color="blue")
 
 
 class GreenDiamond(Diamond):
@@ -258,6 +264,9 @@ class GreenDiamond(Diamond):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_diamond(color="green")
     
 
 class Potion(Collectable):
@@ -274,6 +283,7 @@ class Potion(Collectable):
         super().__init__(pos, size, groups, path)
         self.effect_path = "../graphics/collectables/potions/effect"
 
+
 class RedPotion(Potion):
     """
     The red potion replenishes player health
@@ -286,6 +296,9 @@ class RedPotion(Potion):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_red_potion()
 
 
 class BluePotion(Potion):
@@ -301,6 +314,9 @@ class BluePotion(Potion):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_blue_potion()
 
 
 class GreenPotion(Potion):
@@ -316,6 +332,9 @@ class GreenPotion(Potion):
         path: str
     ):
         super().__init__(pos, size, groups, path)
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_green_potion()
 
 
 class Skull(Collectable):
@@ -331,6 +350,9 @@ class Skull(Collectable):
     ):
         super().__init__(pos, size, groups, path)
         self.effect_path = "../graphics/collectables/skull/effect"
+    
+    def perform_player_modification(self, player: pygame.sprite.Sprite):
+        player.handle_skull()
         
 
 class ParticleEffect(Generic):
@@ -496,6 +518,7 @@ class ShooterTrap(Generic):
     ):
         super().__init__(pos, size, groups)
         self.direction = direction
+        self.active = True
 
         # These will be overwritten by the child class
         self.shoot_frame = 2
@@ -563,7 +586,7 @@ class ShooterTrap(Generic):
             self.has_shot = True
 
     def get_status(self):
-        if not self.attack_cooldown.active:
+        if not self.attack_cooldown.active and self.active:
             self.status = self.direction + '_attack'
         else:
             self.status = self.direction + '_idle'
