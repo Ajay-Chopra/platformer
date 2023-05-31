@@ -214,7 +214,7 @@ class Player(pygame.sprite.Sprite):
         """
         Receive user key input
         """
-        if not self.is_attacking:
+        if not self.is_attacking and not self.is_dead:
             keys = pygame.key.get_pressed()
 
             if keys[pygame.K_RIGHT]:
@@ -281,7 +281,7 @@ class Player(pygame.sprite.Sprite):
         Inflict damage on the player
         """
         if self.can_be_damaged:
-            self.health -= 25
+            self.health -= 100
             self.can_be_damaged = False
             self.damaged_time = pygame.time.get_ticks()
             self.last_hit_direction = direction

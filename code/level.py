@@ -22,7 +22,7 @@ from sprite import (
     ParticleEffect
 )
 from player import Player
-from ui import UI
+from ui import UI, GameOver
 from title import Title
 import settings as settings
 from util import import_csv_layout, import_folder, import_cut_graphics
@@ -34,14 +34,19 @@ class Level:
     def __init__(
             self, 
             level_number: str, 
-            screen: pygame.Surface, 
+            screen: pygame.Surface,
+            restart_level_callback, 
             run_overworld_callback,
-            run_continue_game_callback, 
-            quit_game_callback
+            quit_game_callback,
+            update_level_failed
         ):
         self.display_surface = screen
         self.level_number = level_number
+        self.restart_level_callback = restart_level_callback
         self.run_overworld_callback = run_overworld_callback
+        self.quit_game_callback = quit_game_callback
+        self.update_level_failed = update_level_failed
+
         
         # Setup horizontal scrolling
         self.world_x_shift = 0
@@ -83,6 +88,8 @@ class Level:
         }
         self.get_level_layer_data()
         self.setup_level_sprites()
+        self.starting_distance_to_goal = self.goal.sprite.rect.centerx - self.player.sprite.rect.centerx
+        self.player_progress = 0
 
         # Setup vertical scrolling
         self.world_y_shift = self.player.sprite.rect.centery - (settings.SCREEN_HEIGHT / 2)
@@ -90,6 +97,13 @@ class Level:
 
         # UI setup
         self.ui = UI()
+        self.game_over = GameOver(
+            player=self.player.sprite,
+            level_number=self.level_number,
+            restart_level=self.restart_level_callback,
+            run_overworld=self.run_overworld_callback,
+            quit_game=self.quit_game_callback
+        )
     
     def get_level_layer_data(self) -> None:
         """
@@ -488,8 +502,19 @@ class Level:
                 self.player.sprite.skulls -= 1
                 self.player.sprite.health = 100
             else:
-                self.run_overworld_callback(new_furthest_unlocked_level=self.level_number)
-            # self.player.sprite.run_death_animation()
+                self.player.sprite.is_dead = True
+                self.get_player_progress()
+                self.update_level_failed()
+    
+    def get_player_progress(self) -> None:
+        """
+        Check the amount of the map that the player
+        covered before dying
+        """
+        current_distance_to_goal = self.goal.sprite.rect.centerx - self.player.sprite.rect.centerx
+        progress = 1 - (current_distance_to_goal / self.starting_distance_to_goal)
+        self.player_progress = round(progress, 3) * 100
+        print(self.player_progress)
     
     def check_player_reached_goal(self) -> None:
         """
@@ -543,18 +568,22 @@ class Level:
         for shooter_sprite in self.shooter_sprites.sprites():
             shooter_sprite.active = True
 
-
-    def run(self) -> None:
+    def run(self, mouse_down: bool) -> None:
         """
         Update all sprites and display them
         """
         self.all_sprites.custom_draw(self.player.sprite)
         self.all_sprites.update(0, 0)
-        self.dust_sprite.update(0, 0)
-        self.dust_sprite.draw(self.display_surface)
-        self.create_landing_particles()
-        self.check_player_status()
-        self.check_collisions()
+        if not self.player.sprite.is_dead:
+            self.dust_sprite.update(0, 0)
+            self.dust_sprite.draw(self.display_surface)
+            self.create_landing_particles()
+            self.check_player_status()
+            self.check_collisions()
+        else:
+            self.game_over.update(mouse_down)
+            self.game_over.display(self.player_progress)
+            
         self.ui.display(
             player=self.player.sprite
         )

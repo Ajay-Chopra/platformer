@@ -14,17 +14,33 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.level = Level("test", self.screen, self.run_overworld_callback, self.run_continue_game_callback, self.quit_game_callback)
+        self.level = Level(
+            "test", 
+            self.screen, 
+            self.run_level_callback, 
+            self.run_overworld_callback, 
+            self.quit_game_callback,
+            self.update_level_failed
+        )
         self.overworld = Overworld(furthest_unlocked_level="2", run_level_callback=self.run_level_callback)
         self.continue_game = ContinueGame()
         self.mode = "LEVEL"
+        self.level_failed = False
     
     def run_level_callback(self, level_number: str):
         """
         Switch to running level instead of overworld
         """
-        self.level = Level(level_number, self.screen, self.run_overworld_callback, self.run_continue_game_callback, self.quit_game_callback)
+        self.level = Level(
+            level_number, 
+            self.screen, 
+            self.run_level_callback, 
+            self.run_overworld_callback, 
+            self.quit_game_callback,
+            self.update_level_failed
+        )
         self.mode = "LEVEL"
+        self.level_failed = False
     
     def run_overworld_callback(self, new_furthest_unlocked_level: str):
         """
@@ -36,12 +52,6 @@ class Game:
         )
         self.mode = "OVERWORLD"
     
-    def run_continue_game_callback(self):
-        """
-        Switch to running continue game screen
-        """
-        self.mode = "CONTINUE"
-    
     def quit_game_callback(self):
         """
         Elegantly terminate the program
@@ -49,19 +59,28 @@ class Game:
         pygame.quit()
         sys.exit()
     
+    def update_level_failed(self):
+        """
+        Called when player dies before completing level
+        """
+        self.level_failed = True
+    
     def run(self) -> None:
         """
         Run the game loop
         """
         while True:
+            mouse_down = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN and self.mode == "LEVEL" and self.level_failed:
+                    mouse_down = True
             
             self.screen.fill('black')
             if self.mode == "LEVEL":
-                self.level.run()
+                self.level.run(mouse_down)
             elif self.mode == "OVERWORLD":
                 self.overworld.run()
             elif self.mode == "CONTINUE":

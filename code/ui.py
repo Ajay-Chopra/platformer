@@ -1,6 +1,6 @@
 import pygame
 import settings as settings
-from typing import Tuple
+from typing import Tuple, Callable
 
 class UI:
     """
@@ -52,7 +52,7 @@ class UI:
         self.skull_rect.topleft = settings.SKULL_IMAGE_POS
 
         self.font = pygame.font.Font("../graphics/ui/ARCADEPI.TTF", 12)
-
+    
     def display_player_health(self, player_health: int):
         """
         Display player health bar
@@ -132,8 +132,6 @@ class UI:
         self.display_surface.blit(self.potion_images[color], potion_image_rect)
         pygame.draw.rect(self.display_surface, 'black', potion_bg_rect, 3)
         pygame.draw.rect(self.display_surface, color, potion_rect)
-    
-    
         
     def display_text(self, text: str, position: Tuple[int, int]):
         """
@@ -155,3 +153,195 @@ class UI:
         )
         self.display_skull_count(player.skulls)
         self.display_potion_timers(potion_timers=player.potion_timers)
+
+
+class GameOver:
+    """
+    Displayed if player dies before completing the level
+    """
+    def __init__(self, 
+            player: pygame.sprite.Sprite,
+            level_number: str, 
+            restart_level: Callable[[str], None],
+            run_overworld: Callable[[str], None],
+            quit_game: Callable[[], None]
+        ):
+        self.display_surface = pygame.display.get_surface()
+        self.level_number = level_number
+        self.restart_level = restart_level
+        self.run_overworld = run_overworld
+        self.quit_game = quit_game
+
+        self.current_y_diff = 704
+
+        # Game over base image
+        self.game_over_image = pygame.image.load(settings.GAME_OVER_BASE_IMAGE_PATH).convert_alpha()
+        self.game_over_image_rect = self.game_over_image.get_rect()
+        self.game_over_image_rect.center = (settings.GAME_OVER_BASE_IMAGE_POS[0], settings.GAME_OVER_BASE_IMAGE_POS[1] - self.current_y_diff)
+
+        # gold coins
+        self.gold_coin_image = pygame.image.load("../graphics/ui/gold_coin.png").convert_alpha()
+        self.gold_coin_rect = self.gold_coin_image.get_rect()
+        self.gold_coin_rect.topleft = (settings.GAME_OVER_GOLD_COIN_IMAGE_POS[0], settings.GAME_OVER_GOLD_COIN_IMAGE_POS[1] - self.current_y_diff)
+
+        # silver coins
+        self.silver_coin_image = pygame.image.load("../graphics/ui/silver_coin.png").convert_alpha()
+        self.silver_coin_rect = self.silver_coin_image.get_rect()
+        self.silver_coin_rect.topleft = (settings.GAME_OVER_SILVER_COIN_IMAGE_POS[0], settings.GAME_OVER_SILVER_COIN_IMAGE_POS[1] - self.current_y_diff)
+
+
+        self.player_gold_coins = player.gold_coins
+        self.player_silver_coins = player.silver_coins
+
+        self.font = pygame.font.Font("../graphics/ui/ARCADEPI.TTF", 12)
+        self.big_font = pygame.font.Font("../graphics/ui/ARCADEPI.TTF", 24)
+
+        self.mouse_pos = (0, 0)
+
+        self.button_data = {
+            "RESTART": {
+                "text": "RESTART",
+                "pos": settings.GAME_OVER_RESTART_TEXT_POS,
+                "x_range": (442, 546),
+                "y_range": (471, 505),
+                "func": self.restart_level
+            },
+            "OVERWORLD": {
+                "text": "OVERWORLD",
+                "pos": settings.GAME_OVER_OVERWORLD_TEXT_POS,
+                "x_range": (442, 545),
+                "y_range": (537, 570),
+                "func": self.run_overworld
+            },
+            "QUIT": {
+                "text": "QUIT",
+                "pos": settings.GAME_OVER_QUIT_GAME_TEXT_POS,
+                "x_range": (634, 739),
+                "y_range": (504, 538),
+                "func": self.quit_game
+            }
+        }
+
+    
+    def display_text(self, font: pygame.font.Font, text: str, position: Tuple[int, int], color: str):
+        """
+        Display text to the screen in a given position
+        """
+        text_surface = font.render(text, False, color)
+        self.display_surface.blit(text_surface, position)
+    
+    def display_game_over_banner_text(self):
+        self.display_text(
+            self.font, 
+            "GAME OVER", 
+            (settings.GAME_OVER_BANNER_TEXT_POS[0], settings.GAME_OVER_BANNER_TEXT_POS[1] - self.current_y_diff),
+            'black'
+        )
+    
+    def display_score_text(self):
+        self.display_text(
+            self.big_font, 
+            "SUMMARY:", 
+            (settings.GAME_OVER_RECAP_TEXT_POS[0], settings.GAME_OVER_RECAP_TEXT_POS[1] - self.current_y_diff),
+            'black'
+        )
+    
+    def display_coins_and_progress(self, progress):
+        self.gold_coin_rect.topleft = (settings.GAME_OVER_GOLD_COIN_IMAGE_POS[0], settings.GAME_OVER_GOLD_COIN_IMAGE_POS[1] - self.current_y_diff)
+        self.silver_coin_rect.topleft = (settings.GAME_OVER_SILVER_COIN_IMAGE_POS[0], settings.GAME_OVER_SILVER_COIN_IMAGE_POS[1] - self.current_y_diff)
+        self.display_surface.blit(self.gold_coin_image, self.gold_coin_rect)
+        self.display_surface.blit(self.silver_coin_image, self.silver_coin_rect)
+        self.display_text(
+            self.big_font, 
+            f": {self.player_gold_coins}", 
+            (settings.GAME_OVER_GOLD_COIN_TEXT_POS[0], settings.GAME_OVER_GOLD_COIN_TEXT_POS[1] - self.current_y_diff),
+            'black'
+        )
+        self.display_text(
+            self.big_font, 
+            f": {self.player_silver_coins}", 
+            (settings.GAME_OVER_SILVER_COIN_TEXT_POS[0], settings.GAME_OVER_SILVER_COIN_TEXT_POS[1] - self.current_y_diff),
+            'black'
+        )
+        self.display_text(
+            self.big_font, 
+            f"Progress: {round(progress, 1)}%", 
+            (settings.GAME_OVER_PROGRESS_TEXT_POS[0], settings.GAME_OVER_PROGRESS_TEXT_POS[1] - self.current_y_diff),
+            'black'
+        )
+    
+    def get_mouse_in_range(self, mouse_pos: Tuple[int, int], button_data: dict) -> bool:
+        """
+        Check if mouse is in range of the button
+        """
+        x_min, x_max = button_data["x_range"]
+        y_min, y_max = button_data["y_range"]
+        return (
+            x_min < mouse_pos[0] 
+            and mouse_pos[0] < x_max 
+            and y_min < mouse_pos[1] 
+            and mouse_pos[1] < y_max
+        )
+    
+    def display_button_text(self, mouse_pos: Tuple[int, int]):
+        for button_name in self.button_data:
+            x_min, x_max = self.button_data[button_name]["x_range"]
+            y_min, y_max = self.button_data[button_name]["y_range"]
+            if self.get_mouse_in_range(mouse_pos, self.button_data[button_name]):
+                color = 'yellow'
+            else:
+                color = 'black'
+
+            self.display_text(
+                self.font,
+                self.button_data[button_name]["text"],
+                (self.button_data[button_name]["pos"][0], self.button_data[button_name]["pos"][1] - self.current_y_diff),
+                color
+            )
+    
+    def display_game_over_base_image(self):
+        """
+        Display the base board and buttons that text
+        will be wrtiten on
+        """
+        self.game_over_image_rect.center = (settings.GAME_OVER_BASE_IMAGE_POS[0], settings.GAME_OVER_BASE_IMAGE_POS[1] - self.current_y_diff)
+        self.display_surface.blit(self.game_over_image, self.game_over_image_rect)
+    
+    def handle_mouse_down(self):
+        """
+        Get player mouse click input
+        """
+        for button_name in self.button_data:
+            if self.get_mouse_in_range(self.mouse_pos, self.button_data[button_name]):
+                callback_func = self.button_data[button_name]["func"]
+                if button_name == "RESTART" or button_name == "OVERWORLD":
+                    callback_func(self.level_number)
+                else:
+                    callback_func()
+       
+    def handle_input_cooldown(self):
+        """
+        Check if user can accept input again
+        """
+        if not self.can_accept_input:
+            current_time = pygame.time.get_ticks()
+            if (current_time - self.input_time) > self.input_timeout:
+                self.can_accept_input = True
+    
+    def update(self, mouse_down: bool):
+        self.mouse_pos = pygame.mouse.get_pos()
+        if mouse_down:
+            self.handle_mouse_down()
+
+        if self.current_y_diff > 0:
+            self.current_y_diff -= 5
+        # if self.game_over_image_rect.centery < settings.GAME_OVER_BASE_IMAGE_POS[1]:
+        #     self.game_over_image_rect.centery += 1
+    
+    def display(self, progress: float):
+        self.display_game_over_base_image()
+        self.display_game_over_banner_text()
+        self.display_score_text()
+        self.display_coins_and_progress(progress)
+        self.display_button_text(self.mouse_pos)
+
