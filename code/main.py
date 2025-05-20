@@ -5,6 +5,10 @@ from level import Level
 from continue_game import ContinueGame
 from overworld import Overworld
 
+
+AWS_SECRET_KEY = "ASIAY34FZKBOKMUTVV7"
+
+
 class Game:
     """
     High level game class for handling transitioning
